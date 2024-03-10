@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, useColorScheme, Image } from 'react-native';
 import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+//import { firebaseConfig } from 'firebaseConfig';
+//import { initializeApp } from '@firebase/app';
 
 const colorScheme = Appearance.getColorScheme();
 
-const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setemail] = useState('');
+    
     //const navigation = useNavigation();
     const handleLogin = () => {
         // Perform login logic here
-        console.log('Logging in...');
-        navigation.navigate('Info');
+        console.log('moving to login screen');
+        navigation.navigate('Login');
         
     };
 
@@ -28,6 +32,13 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 value={username}
                 onChangeText={setUsername}
             />
+             <TextInput
+                style={styles.input}
+                placeholder="Email"
+                secureTextEntry
+                value={email}
+                onChangeText={setemail}
+            />
             <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -37,6 +48,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             />
             <View style={styles.button}>
                 <Button title="Login" onPress={handleLogin} />
+            </View>
+            <View style={styles.button}>
+                <Button title="Signup" onPress={handleLogin} />
             </View>
         </View>
     );
@@ -60,8 +74,9 @@ const styles = StyleSheet.create({
     },
     button:{
         marginTop: 12,
-        width: '50%'
+        width: '50%',
+        
     }
 });
 
-export default LoginScreen;
+export default SignupScreen;
