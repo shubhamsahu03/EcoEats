@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import auth from '@react-native-firebase/auth';
@@ -32,16 +31,6 @@ const InfoScreen: React.FC = () => {
         // Unsubscribe from the listener when component unmounts
         return unsubscribe;
     }, []);
-  
-    const signOut = async () => {
-      try {
-        await auth().signOut();
-        // User signed out successfully
-        setUserEmail(null);
-      } catch (error) {
-        console.error('Error signing out: ', error);
-      }
-    };
   
     return (
       <View style={styles.container}>

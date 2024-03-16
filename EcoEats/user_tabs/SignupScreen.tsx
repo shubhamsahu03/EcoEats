@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, useColorScheme, Image, Alert } from 'react-native';
 import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import DropDownPicker from 'react-native-dropdown-picker';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 //import { firebaseConfig } from 'firebaseConfig';
 //import { initializeApp } from '@firebase/app';
 
@@ -11,13 +13,14 @@ const colorScheme = Appearance.getColorScheme();
 const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [email, setemail] = useState('');
-    
+    const [name, setname] = useState('');
 
-    const handleLogin = () => {
-        console.log('moving to login screen');
-        navigation.navigate('Login');
-        
-    };
+    const [open, setOpen] = useState(false);
+    const [userType, setUserType] = useState('');
+    const [items, setItems] = useState([
+        {label: 'User', value: 'user'},
+        {label: 'Vendor', value: 'vendor'},
+    ]);
 
     const handleSignup = ( password: string, email: string) => {
         console.log('Signing up...');
@@ -41,13 +44,48 @@ const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             }
             console.error(error);
         });
+
+        firestore()
+        .collection('Users')
+        .doc(
+            auth().currentUser?.uid
+        )
+        .set({
+            name: name,
+            email: email,
+            userType: userType,
+        })
+        .then(() => {
+            console.log('User added!');
+        })
+        .catch(error => {
+            console.error('Error adding user: ', error);
+        });
     };
 
     return (
         <View style={styles.container}>
             <Image
                 source={require('../assets/login.png')}
-                style={{ width: 200, height: 200, marginBottom: 24 }}
+                style={{ width: 100, height: 100, marginBottom: 24 }}
+            />
+            <View style={styles.dropdown}>
+                <DropDownPicker
+                    open={open}
+                    value={userType}
+                    items={items}
+                    setOpen={setOpen}
+                    setValue={setUserType}
+                    setItems={setItems}
+                    placeholder="Select User Type"
+                />
+            </View>
+            <TextInput
+                style={styles.input}
+                placeholder="Name"
+                secureTextEntry
+                value={name}
+                onChangeText={setname}
             />
              <TextInput
                 style={styles.input}
@@ -63,9 +101,6 @@ const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 value={password}
                 onChangeText={setPassword}
             />
-            <View style={styles.button}>
-                <Button title="Login" onPress={handleLogin} />
-            </View>
             <View style={styles.button}>
                 <Button title="Signup" onPress={() => handleSignup(password, email)} />
             </View>
@@ -88,6 +123,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 12,
         paddingHorizontal: 8,
+    },
+    dropdown:{
+        width: '100%',
+        marginBottom: 12,
     },
     button:{
         marginTop: 12,
