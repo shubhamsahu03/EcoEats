@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 const colorScheme = Appearance.getColorScheme();
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     //const navigation = useNavigation();
     const handleLogin = () => {
@@ -24,9 +24,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             />
             <TextInput
                 style={styles.input}
-                placeholder="Username"
-                value={username}
-                onChangeText={setUsername}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
             />
             <TextInput
                 style={styles.input}
