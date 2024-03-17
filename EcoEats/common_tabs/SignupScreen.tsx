@@ -22,13 +22,53 @@ const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {label: 'Vendor', value: 'vendor'},
     ]);
 
-    const handleSignup = ( password: string, email: string) => {
+    const handleSignup = ( password: string, email: string , userType :string) => {
         console.log('Signing up...');
         auth()
         .createUserWithEmailAndPassword(email, password)
         .then(() => {
             console.log('User account created & signed in!');
             navigation.navigate('Info');
+        })
+        .then(() => {
+            if(userType === 'user'){
+                firestore()
+                .collection('Users')
+                .doc(
+                    auth().currentUser?.uid
+                )
+                .set({
+                    name: name,
+                    email: email,
+                    userType: userType,
+                    orders: [],
+                })
+                .then(() => {
+                    console.log('User added!');
+                })
+                .catch(error => {
+                    console.error('Error adding user: ', error);
+                });
+            }else if(userType === 'vendor'){
+                firestore()
+                .collection('Users')
+                .doc(
+                    auth().currentUser?.uid
+                )
+                .set({
+                    name: name,
+                    email: email,
+                    userType: userType,
+                    items: [],
+                    ordersReceived: [],
+                })
+                .then(() => {
+                    console.log('Vendor added!');
+                })
+                .catch(error => {
+                    console.error('Error adding vendor: ', error);
+                });
+            }
         })
         .catch(error => {
             if (error.code === 'auth/email-already-in-use') {
@@ -43,23 +83,6 @@ const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 Alert.alert('Weak Password', 'Please choose a stronger password.');
             }
             console.error(error);
-        });
-
-        firestore()
-        .collection('Users')
-        .doc(
-            auth().currentUser?.uid
-        )
-        .set({
-            name: name,
-            email: email,
-            userType: userType,
-        })
-        .then(() => {
-            console.log('User added!');
-        })
-        .catch(error => {
-            console.error('Error adding user: ', error);
         });
     };
 
@@ -83,14 +106,12 @@ const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <TextInput
                 style={styles.input}
                 placeholder="Name"
-                secureTextEntry
                 value={name}
                 onChangeText={setname}
             />
              <TextInput
                 style={styles.input}
                 placeholder="Email"
-                secureTextEntry
                 value={email}
                 onChangeText={setemail}
             />
@@ -102,7 +123,7 @@ const SignupScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 onChangeText={setPassword}
             />
             <View style={styles.button}>
-                <Button title="Signup" onPress={() => handleSignup(password, email)} />
+                <Button title="Signup" onPress={() => handleSignup(password, email, userType)} />
             </View>
         </View>
     );

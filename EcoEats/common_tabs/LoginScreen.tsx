@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, useColorScheme, Image } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
+import { View, TextInput, Button, StyleSheet, useColorScheme, Image, Alert } from 'react-native';
 import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 
 const colorScheme = Appearance.getColorScheme();
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -11,7 +11,20 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     //performs logic after login button is pressed
     const handleLogin = (email:string,password:string) => {
-        console.log('Logging in...');
+        auth()
+        .signInWithEmailAndPassword(email, password)
+        .catch(error => {
+            if (error.code === 'auth/invalid-email') {
+                Alert.alert('That email address is invalid!');
+            }
+            if (error.code === 'auth/user-not-found') {
+                Alert.alert('No user found for this email. Please Signup.');
+            }
+            if (error.code === 'auth/wrong-password') {
+                Alert.alert('Wrong password.');
+            }
+            console.error(error);
+        });
         console.log("Email: " + email+ " Password: " + password);
         navigation.navigate('Info');
         

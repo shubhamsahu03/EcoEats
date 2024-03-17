@@ -12,7 +12,10 @@ import {
   import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
   import storage from '@react-native-firebase/storage';
   import firestore from '@react-native-firebase/firestore';
+  
+  
   const Add = () => {
+    
     const [imageData, setImageData] = useState(null);
     const [name, setName] = useState('');
     const [price, setPrice] = useState(0);
