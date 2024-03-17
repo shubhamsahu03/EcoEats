@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserInfo {
     name: string;
@@ -90,22 +89,30 @@ const InfoScreen: React.FC = () => {
                     <Text style ={styles.boxeditem}>Email: {vendorInfo?.email}</Text>
                     <Text style ={styles.boxeditem}>User Type: {vendorInfo?.userType}</Text>
                     <View style={styles.orders}>
-                    <Text style={styles.header}>Orders Received</Text>
-                        <FlatList
-                            data={vendorInfo?.ordersReceived}
-                            renderItem={({ item }) => (
-                                <Text>{item}</Text>
-                            )}
-                        />
+                        <Text style={styles.header}>Orders Received</Text>
+                        {vendorInfo?.ordersReceived.length === 0 ? (
+                            <Text style={styles.redText}>No orders received</Text>
+                        ) : (
+                            <FlatList
+                                data={vendorInfo?.ordersReceived}
+                                renderItem={({ item }) => (
+                                    <Text>{item}</Text>
+                                )}
+                            />
+                        )}
                     </View>
                     <View style={styles.items}>
                     <Text style={styles.header}>Items</Text>
-                        <FlatList
+                        {vendorInfo?.items.length === 0 ? (
+                            <Text style={styles.redText}>No items</Text>
+                        )
+                        :(<FlatList
                             data={vendorInfo?.items}
                             renderItem={({ item }) => (
                                 <Text>{item}</Text>
                             )}
                         />
+                        )}
                     </View>
                 </View>
             );
@@ -119,44 +126,56 @@ const InfoScreen: React.FC = () => {
         }
     };
 
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor: 'white',
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    header: {
-        color: 'black',
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 12,
-    },
-    boxeditem: {
-        alignItems:'stretch',
-        textAlign: 'left',
-        fontSize: 18,
-        fontFamily: 'Arial',
-        backgroundColor: 'black',
-        color: 'white',
-        padding: 15,
-        marginBottom: 15,
-    },
-    redText:{
-        backgroundColor: 'black',
-        color: 'red'
-    },
-    orders: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    items: {
-        backgroundColor: 'black',
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    }
-});
+    const styles = StyleSheet.create({
+        container: {
+            backgroundColor: '#f5f5f5',
+            flex: 1,
+            padding: 16,
+        },
+        header: {
+            color: '#333',
+            fontSize: 24,
+            fontWeight: 'bold',
+            marginBottom: 12,
+        },
+        boxeditem: {
+            fontSize: 18,
+            fontFamily: 'Arial',
+            backgroundColor: '#fff',
+            color: '#333',
+            padding: 15,
+            marginBottom: 15,
+            borderRadius: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.3,
+            shadowRadius: 1,
+            elevation: 3,
+        },
+        redText:{
+            color: 'red',
+            fontSize: 18,
+            fontWeight: 'bold',
+        },
+        orders: {
+            flex: 1,
+            marginTop: 16,
+        },
+        items: {
+            flex: 1,
+            marginTop: 16,
+        },
+        listItem: {
+            backgroundColor: '#fff',
+            padding: 16,
+            marginBottom: 16,
+            borderRadius: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.3,
+            shadowRadius: 1,
+            elevation: 3,
+        },
+    });
 
 export default InfoScreen;

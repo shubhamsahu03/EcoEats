@@ -3,6 +3,7 @@ import { View, TextInput, Button, StyleSheet, useColorScheme, Image, Alert } fro
 import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 const colorScheme = Appearance.getColorScheme();
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -13,6 +14,29 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const handleLogin = (email:string,password:string) => {
         auth()
         .signInWithEmailAndPassword(email, password)
+        .then(()=>{
+            const usertType=firestore()
+            .collection('Users')
+            .doc(auth().currentUser?.uid).get().then((doc)=>{
+                if(doc.exists){
+                    console.log('Document data:', doc.data());
+                    const userType=doc.data()?.userType;
+                    console.log('User Type:', userType);
+                    if(userType==='user'){
+                        navigation.navigate('Search');
+                    }
+                    else if(userType==='vendor'){
+                        navigation.navigate('Info');
+                    }
+                }
+                else{
+                    console.log('No such document!');
+                }
+            })
+            .catch((error)=>{
+                console.log('Error getting document:', error);
+            });
+        })
         .catch(error => {
             if (error.code === 'auth/invalid-email') {
                 Alert.alert('That email address is invalid!');
@@ -26,7 +50,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             console.error(error);
         });
         console.log("Email: " + email+ " Password: " + password);
-        navigation.navigate('Info');
         
     };
 
