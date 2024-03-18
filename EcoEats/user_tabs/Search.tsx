@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, Image, StyleSheet, PermissionsAndroid } from 'react-native';
+import { View, FlatList, Text, Image, StyleSheet, PermissionsAndroid, Button } from 'react-native';
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import getDistance from 'geolib/es/getPreciseDistance';
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
+import { useNavigation } from '@react-navigation/native';
 
 type Items = {
     name: string,
@@ -16,6 +17,11 @@ type VendorItems = {
     items: Items[],
     location: FirebaseFirestoreTypes.GeoPoint,
 };
+
+type UserOrderInfo = {
+    name:string,
+    location:FirebaseFirestoreTypes.GeoPoint,
+}
 
 const requestLocationPermission = async () => {
     try {
@@ -45,9 +51,21 @@ const SearchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [data, setData] = useState<VendorItems[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [location, setLocation] = useState<GeoPosition | null>(null);
+    const [orders, setOrders] = useState<VendorItems[]|null>([]);
+    const [vendorName, setVendorName] = useState<string>('');
 
     useEffect(() => {
         getLocation();
+        navigation.setOptions({
+            title: 'Browse', // Set the title of the current page
+            headerRight: () => (
+                <Button
+                    onPress={() => navigation.navigate('Info')}
+                    title="Info"
+                    color="#000"
+                />
+            ),
+        });
         if (isLoading) {
             fetchData();
         }
@@ -57,7 +75,7 @@ const SearchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         setIsLoading(true);
         const response = await firestore().collection('Items').get();
         const val = response.docs.map((doc) => ({
-            vendorID: doc.id,
+            vendorID: doc.data().vendorID,
             items: (doc.data()?.items as Items[]),
             location: (doc.data().location)
         }));
@@ -85,6 +103,34 @@ const SearchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         console.log(location);
     };
 
+    const handleOrder = async (vendorID:string) => {
+        console.log('Ordering...'+vendorID);
+        const snapshot = await firestore().collection('Users').doc(auth().currentUser?.uid).get();
+        const data=snapshot.data();
+        setOrders(data?.orders);
+        const newOrder = await firestore().collection('Items').where('vendorID', '==', vendorID).get()
+        .then((querySnapshot) => {
+            let newOrderData;
+            querySnapshot.forEach((doc) => {
+                newOrderData = doc.data();
+            });
+            return newOrderData;
+        });
+        const newOrders = newOrder ? (orders ? [...orders, newOrder] : [newOrder]) : [];
+        await firestore().collection('Users').doc(auth().currentUser?.uid).update({
+            orders: newOrders,
+        });
+
+        const userOrderInfo: UserOrderInfo = {
+            name: data?.name,
+            location: location?.coords ? new firestore.GeoPoint(location.coords.latitude, location.coords.longitude) : new firestore.GeoPoint(0, 0)
+        }; 
+        await firestore().collection('Users').doc(vendorID).update({
+            ordersReceived: userOrderInfo,
+        });
+        navigation.navigate('Order');
+    };
+
     const renderItem = ({ item }: { item: VendorItems }) => {
         let distance = 0;
         if (location) {
@@ -93,10 +139,20 @@ const SearchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 { latitude: item.location.latitude, longitude: item.location.longitude },
             );
         }
-        if (distance <=5000 && !isLoading) {
+
+        const updateVendorName = async (vendorID:string) => {
+            await firestore().collection('Users').doc(vendorID).get().then((doc) => {
+                if (doc.exists) {
+                    setVendorName(doc.data()?.name);
+                }
+            });
+        }
+        updateVendorName(item.vendorID);
+        if (location && distance <=5000 && !isLoading) {
+
             return (
                 <View style={styles.container}>
-                    <Text style={styles.header}>Vendor ID: {item.vendorID}</Text>
+                    <Text style={styles.header}>Vendor ID: {vendorName}</Text>
                     <FlatList
                         data={item.items}
                         renderItem={({ item }) => (
@@ -109,9 +165,14 @@ const SearchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                         keyExtractor={(item) => item.name}
                     />
                     <Text style={styles.distance}>Distance: {distance}m</Text>
+                    <View style={styles.button}>
+                        <Button
+                            title="Order"
+                            onPress={()=>handleOrder(item.vendorID)}
+                        />
+                    </View>
                     <View style={styles.line}></View>
                 </View>
-                
             );
         }
         return null;
@@ -164,6 +225,11 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         marginTop: 30,
         marginBottom: 10,
+    },
+    button: {
+        color: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 

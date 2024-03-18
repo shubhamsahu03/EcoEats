@@ -4,7 +4,7 @@ import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
 //import { firebaseConfig } from 'firebaseConfig';
 //import { initializeApp } from '@firebase/app';

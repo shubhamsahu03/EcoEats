@@ -5,6 +5,7 @@ import LoginScreen from './common_tabs/LoginScreen';
 import InfoScreen from './common_tabs/InfoScreen';
 import SignupScreen from './common_tabs/SignupScreen';
 import SearchScreen from './user_tabs/Search';
+import Order from './user_tabs/Order';
 const Stack = createNativeStackNavigator();
 
 const App : React.FC = () => {
@@ -15,6 +16,7 @@ const App : React.FC = () => {
         <Stack.Screen name="Login" component={LoginScreen} />
        <Stack.Screen name="Search" component={SearchScreen} />
        <Stack.Screen name="Info" component={InfoScreen} />
+       <Stack.Screen name="Order" component={Order} />
       </Stack.Navigator>
     </NavigationContainer>
   );

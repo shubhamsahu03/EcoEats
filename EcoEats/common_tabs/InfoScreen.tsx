@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+
+type Items = {
+    name: string;
+    description: string;
+    image: string;
+};
+
+type Order = {
+    vendorID: string;
+    items: Items[];
+    location: FirebaseFirestoreTypes.GeoPoint;
+};
 
 interface UserInfo {
     name: string;
     email: string;
     userType: string;
-    orders: [];
+    orders: Order[];
 }
 
 interface VendorInfo {
@@ -22,6 +34,7 @@ const InfoScreen: React.FC = () => {
     const [userType, setUserType] = useState('');
     const [userInfo, setUserInfo] = useState<UserInfo|null>(null);
     const [vendorInfo, setVendorInfo] = useState<VendorInfo|null>(null);
+    const [vendorName, setVendorName] = useState();
 
     useEffect(() => {
         // Fetch user information once when the component mounts
@@ -63,6 +76,17 @@ const InfoScreen: React.FC = () => {
     }, []);
     
     if (userType === 'user') {
+        const updateVendorName = (vendorID:string) => {
+            if (userInfo) {
+                    firestore().collection('Users').doc(vendorID).get().then((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            setVendorName(data?.name);
+                        }
+                    });
+            }
+        }
+
         return(
                 <View style={styles.container}>
                     <Text style={styles.header}>User Information</Text>
@@ -73,14 +97,17 @@ const InfoScreen: React.FC = () => {
                         <Text style={styles.header}>Orders</Text>
                         <FlatList
                             data={userInfo?.orders}
-                            renderItem={({ item }) => (
-                                <Text>{item}</Text>
-                            )}
+                            renderItem={({ item }) => {
+                                updateVendorName(item.vendorID);
+                                return (
+                                    <Text style={styles.boxeditem}>Vendor : {vendorName}</Text>
+                                );
+                            }}
                         />
                     </View>
                 </View>
             );
-        } 
+    }
         else if (userType === 'vendor') {
             return(
                 <View style={styles.container}>
@@ -120,7 +147,6 @@ const InfoScreen: React.FC = () => {
         else {
             return(
                 <View style={styles.container}>
-                    <Text style={styles.redText}>No user signed in</Text>
                 </View>
             );
         }
